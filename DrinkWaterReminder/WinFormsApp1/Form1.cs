@@ -17,6 +17,7 @@ namespace WinFormsApp1
         private System.Windows.Forms.Timer responseTimer;
         private bool exitRequested = false;
         private System.Windows.Forms.NotifyIcon notifyIcon;
+        private System.Drawing.Icon appIcon;
         private System.Windows.Forms.ContextMenuStrip trayMenu;
 
         public Form1()
@@ -55,7 +56,25 @@ namespace WinFormsApp1
             trayMenu.Items.Add("退出", null, (s, e) => { ExitApp(); });
 
             notifyIcon = new System.Windows.Forms.NotifyIcon();
-            notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+            // 尝试从发布目录的 images\logo.ico 加载图标，回退到 SystemIcons.Application
+            try
+            {
+                var iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "images", "logo.ico");
+                if (System.IO.File.Exists(iconPath))
+                {
+                    appIcon = new System.Drawing.Icon(iconPath);
+                    notifyIcon.Icon = appIcon;
+                    this.Icon = appIcon; // 主界面使用同一图标
+                }
+                else
+                {
+                    notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+                }
+            }
+            catch
+            {
+                notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+            }
             notifyIcon.Visible = true;
             notifyIcon.Text = "喝水提醒";
             notifyIcon.ContextMenuStrip = trayMenu;
@@ -192,7 +211,7 @@ namespace WinFormsApp1
                 responseTimer.Stop();
             }
             catch { }
-            totalWaterMl += 300;
+            totalWaterMl += 150;
             UpdateTotalLabel();
             UpdateProgress();
             SaveTotalToStorage();
